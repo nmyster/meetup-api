@@ -130,14 +130,18 @@ class Client(object):
                 # API Method descriptions.  Used as a helpful reference.
                 self.services[service_name] = service_details
 
-    def _call(self, service_name, parameters=None, **kwargs):
+    def _call(self, service_name, parameters=None, headers=None, **kwargs):
         if not self.api_key:
             raise exceptions.ApiKeyError('Meetup API key not set')
         if not parameters:
             parameters = {}
         if not isinstance(parameters, dict):
             raise exceptions.ApiParameterError('Parameters must be dict')
-        parameters['key'] = self.api_key
+        if not headers:
+            headers = {}
+
+        headers['Authorization'] = "Bearer " + self.api_key
+
         for key, value in six.iteritems(kwargs):
             parameters[key] = value
 
@@ -161,11 +165,11 @@ class Client(object):
         # This can probably be simplified by calling `requests.request` directly,
         # but more testing will need to be done on parameters.
         if request_http_method == 'GET':
-            response = self.session.get(request_url, params=parameters)
+            response = self.session.get(request_url, params=parameters, headers=headers)
         elif request_http_method == 'POST':
-            response = self.session.post(request_url, data=parameters)
+            response = self.session.post(request_url, data=parameters, headers=headers)
         elif request_http_method == 'DELETE':
-            response = self.session.delete(request_url, params=parameters)
+            response = self.session.delete(request_url, params=parameters, headers=headers)
         else:
             raise exceptions.HttpMethodError('HTTP Method not implemented: [{0}]'.format(request_http_method))
 
